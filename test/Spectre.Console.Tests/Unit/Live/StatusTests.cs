@@ -57,5 +57,47 @@ namespace Spectre.Console.Tests.Unit
             // Then
             return Verifier.Verify(console.Output);
         }
+
+        [Fact]
+        [Expectation("RenderMessage")]
+        public Task Should_Render_Status_Message_Correctly()
+        {
+            // Given
+            var console = new TestConsole()
+                .Colors(ColorSystem.TrueColor)
+                .Width(10)
+                .Interactive()
+                .EmitAnsiSequences();
+
+            var status = new Status(console)
+            {
+                AutoRefresh = false,
+            };
+
+            // When
+            status.Start("foo", ctx =>
+            {
+                ctx.Refresh();
+
+                // brackets are here to define scope so dispose is called
+                {
+                    using var msg = new StatusMessage(ctx, "bar");
+                    ctx.Refresh();
+                }
+
+                ctx.Refresh();
+
+                {
+                    using var msg = new StatusMessage(ctx, "baz");
+                    ctx.Refresh();
+                }
+
+                ctx.Refresh();
+            });
+
+
+            // Then
+            return Verifier.Verify(console.Output);
+        }
     }
 }
